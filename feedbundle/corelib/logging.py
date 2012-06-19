@@ -25,7 +25,18 @@ def make_multiline_formatter():
 def make_file_handler(path, formatter_factory=make_multiline_formatter,
         level=logging.DEBUG):
     """Create a file handler to record logging information into a file."""
-    file_handler = logging.handlers.WatchedFileHandler(path)
-    file_handler.setLevel(level)
-    file_handler.setFormatter(formatter_factory())
-    return file_handler
+    handler = logging.handlers.WatchedFileHandler(path)
+    handler.setLevel(level)
+    handler.setFormatter(formatter_factory())
+    return handler
+
+
+def make_smtp_handler(fromaddr, toaddrs, host="127.0.0.1",
+        subject="Application Log",
+        formatter_factory=make_multiline_formatter,
+        level=logging.ERROR):
+    """Create a STMP handler to send logging information with email."""
+    handler = logging.handlers.SMTPHandler(host, fromaddr, toaddrs, subject)
+    handler.setLevel(level)
+    handler.setFormatter(formatter_factory())
+    return handler

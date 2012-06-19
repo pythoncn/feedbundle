@@ -3,10 +3,10 @@
 
 import os
 
-from flask import Flask
+from flask import Flask, request
 from werkzeug import import_string
 
-from feedbundle.corelib.logging import make_file_handler
+from feedbundle.corelib.logging import make_file_handler, make_smtp_handler
 
 
 class FeedBundle(Flask):
@@ -26,6 +26,7 @@ class FeedBundle(Flask):
         self.config.setdefault("BLUEPRINTS", [])
         self.config.setdefault("EXTENSIONS", [])
         self.config.setdefault("LOGGING_FILE", None)
+        self.config.setdefault("LOGGING_EMAILS", [])
 
         #: initialize the application
         self.init_extensions()
@@ -50,6 +51,20 @@ class FeedBundle(Flask):
         if filepath:
             file_handler = make_file_handler(filepath)
             self.logger.addHandler(file_handler)
+
+        #: create a email handler and install it
+        emails = self.config['LOGGING_EMAILS']
+        smtp_handler_installed = [False]
+
+        @self.before_first_request
+        def register_smtp_handler():
+            #: defer initialize because of the 'request.host'
+            if emails and not smtp_handler_installed[0]:
+                fromaddr = "applog@%s" % request.host
+                subject = "FeedBundle Application Log"
+                smtp_handler = make_smtp_handler(fromaddr, emails, subject)
+                self.logger.addHandler(smtp_handler)
+                smtp_handler_installed[0] = True
 
     def init_blueprints(self):
         """Register all blueprints to the application."""
