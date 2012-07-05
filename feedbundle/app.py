@@ -74,7 +74,7 @@ class FeedBundle(Flask):
 
         #: import and install all blueprints
         for blueprint_name in blueprints:
-            package_name = blueprint_name.replace(":", ".").rsplit(".", 1)
+            package_name = blueprint_name.replace(":", ".").rsplit(".", 1)[0]
             self.register_blueprint_by_name(blueprint_name, package_name)
 
     def register_blueprint_by_name(self, name, package_name):
